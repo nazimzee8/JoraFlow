@@ -1,0 +1,4 @@
+interface:
+  display_name: "JoraFlow Design System"
+  short_description: "Visual, layout, and motion rules"
+  default_prompt: "Use $design-system to design JoraFlow UI components and layouts."

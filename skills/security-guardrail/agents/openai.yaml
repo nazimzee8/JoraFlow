@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Guardrail"
+  short_description: "Security, privacy, and auth rules"
+  default_prompt: "Use $security-guardrail to apply JoraFlow security and privacy protocols."

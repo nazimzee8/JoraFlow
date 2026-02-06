@@ -1,0 +1,4 @@
+interface:
+  display_name: "Job Parsing Engine"
+  short_description: "Parse recruiting emails into status updates"
+  default_prompt: "Use $job-parsing-engine to extract status updates from recruiting emails."
