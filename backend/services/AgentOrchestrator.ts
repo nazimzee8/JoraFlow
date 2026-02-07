@@ -86,6 +86,7 @@ Output Guidance:
 
 export class SkillManager {
   private skills: SkillDefinition[] = [];
+  private knowledgePlanCache: string | null = null;
 
   constructor(private readonly skillsDir = path.join(__dirname, '../../skills')) {}
 
@@ -159,6 +160,10 @@ export class SkillManager {
     return { skills, warnings, errors };
   }
 
+  refreshKnowledgePlan(): void {
+    this.knowledgePlanCache = null;
+  }
+
   getSkills(): SkillDefinition[] {
     return this.skills;
   }
@@ -199,13 +204,25 @@ export class SkillManager {
     }
 
     if (primary && primary.name !== 'security-guardrail') {
-      if (/(auth|security|privacy|token|email|storage|database|rls|oauth)/i.test(userInput)) {
+      if (/(auth|security|privacy|token|email|storage|database|rls|oauth|frontend|ui|lovable)/i.test(userInput)) {
         const sec = this.skills.find(s => s.name === 'security-guardrail');
         if (sec && !secondary.includes(sec)) secondary.unshift(sec);
       }
     }
 
     return { primary, secondary, rationale };
+  }
+
+  loadKnowledgePlan(): string {
+    if (this.knowledgePlanCache !== null) return this.knowledgePlanCache;
+    const planPath = path.join(__dirname, '../../docs/KNOWLEDGE_PLAN.md');
+    if (!fs.existsSync(planPath)) {
+      this.knowledgePlanCache = '';
+      return this.knowledgePlanCache;
+    }
+    const content = fs.readFileSync(planPath, 'utf8');
+    this.knowledgePlanCache = `\n\n[KNOWLEDGE PLAN]\n${content}`;
+    return this.knowledgePlanCache;
   }
 
   loadRequiredReferences(skill: SkillDefinition): string {
@@ -233,9 +250,10 @@ export class SkillManager {
           .join('\n')}`
       : '';
 
+    const plan = this.loadKnowledgePlan();
     const refs = this.loadRequiredReferences(selection.primary);
 
-    return `${ORCHESTRATOR_SYSTEM_PROMPT}\n\nCURRENTLY ACTIVE SKILL: ${selection.primary.name}\nSKILL INSTRUCTIONS:\n${selection.primary.instructions}${secondaryBlock}${refs}`;
+    return `${ORCHESTRATOR_SYSTEM_PROMPT}\n\nCURRENTLY ACTIVE SKILL: ${selection.primary.name}\nSKILL INSTRUCTIONS:\n${selection.primary.instructions}${secondaryBlock}${plan}${refs}`;
   }
 
   async runAgenticWorkflow(

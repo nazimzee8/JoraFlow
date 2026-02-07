@@ -224,3 +224,7 @@ Front-end should render these states based on API responses:
 - Parse LinkedIn/Indeed/Greenhouse confirmation pages.
 - Extract source_channel (e.g., LinkedIn Easy Apply vs Direct Career Site).
 - Detect referral tags and store eferral = true for badge display.
+\n## 21. Knowledge Plan\nThe master blueprint is docs/KNOWLEDGE_PLAN.md. Both Lovable and Codex must follow it.\n
+
+## 22. Knowledge Plan Reload
+If docs/KNOWLEDGE_PLAN.md changes at runtime, call SkillManager.refreshKnowledgePlan() to reload the cached content without restarting the service.
