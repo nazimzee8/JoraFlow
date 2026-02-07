@@ -176,3 +176,34 @@ Day 4 (Integration)
 - If a field is added/renamed, update both TypeScript types and DB schema.
 - Do not ship changes that break the contract without updating this guide.
 \n## 12. Skill References Loading\nAll skills must declare a 'Required References' section in SKILL.md. The orchestrator auto-loads those reference files and appends them to the system prompt. If you add a new reference file, add it to that section.\n
+
+## 13. Security Blacklist + WAF + Rate Limits
+- security_blacklist table defined in docs/migrations/001_security_blacklist.sql.
+- Edge Functions must log prompt-injection attempts to security_blacklist.
+- WAF headers (x-waf-*) should be validated on every Edge request.
+- Rate limit sync attempts to 5/min and return HTTP 429 with etry_after_seconds.
+
+Frontend notes (Lovable):
+- If a 429 is returned, show a friendly cooldown state.
+- If a 403 waf_blocked or high_risk_sender is returned, show a security warning.
+
+## 14. Frontend Error Handling (Lovable)
+Map backend security errors to clear UI states:
+- 429 rate_limited: show cooldown state with retry timer.
+- 403 waf_blocked: show a security warning and stop retries.
+- 403 high_risk_sender: mark sender as High Risk and quarantine.
+- 401 prompt_injection_detected: show a generic security error and log out user.
+
+## 15. Security Tests (Codex)
+Backend tests live in ackend/tests/ and are run via:
+- 
+pm run backend:test
+These validate prompt injection detection, WAF header logic, and rate limiting.
+
+
+## 16. Lovable UI Mapping (Security)
+Front-end should render these states based on API responses:
+- ate_limited: show cooldown timer + retry CTA
+- waf_blocked: show security warning + support link
+- high_risk_sender: tag sender as High Risk in UI
+- prompt_injection_detected: force logout + show generic security error

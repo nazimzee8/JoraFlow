@@ -1,13 +1,14 @@
 {
-  "name": "joraflow-backend",
-  "private": true,
-  "type": "commonjs",
-  "scripts": {
-    "backend:dev": "ts-node backend/index.ts",
-    "backend:build": "tsc -p backend/tsconfig.json"
-  },
-  "devDependencies": {
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
-  }
+    "name":  "joraflow-backend",
+    "private":  true,
+    "type":  "commonjs",
+    "scripts":  {
+                    "backend:dev":  "ts-node backend/index.ts",
+                    "backend:build":  "tsc -p backend/tsconfig.json",
+                    "backend:test":  "ts-node backend/tests/run.ts"
+                },
+    "devDependencies":  {
+                            "ts-node":  "^10.9.2",
+                            "typescript":  "^5.6.3"
+                        }
 }

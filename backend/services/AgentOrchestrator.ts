@@ -48,6 +48,19 @@ export type LlmCallInput = {
 
 export type LlmCaller = (input: LlmCallInput) => Promise<unknown>;
 
+export type RateLimiter = {
+  allow: (userId: string) => Promise<{ allowed: boolean; retryAfterSeconds?: number }>;
+};
+
+export type SecurityContext = {
+  userId?: string;
+  ip?: string;
+  headers?: Record<string, string | undefined>;
+  requireWafHeaders?: boolean;
+  rateLimiter?: RateLimiter;
+  onPromptInjection?: (info: { userId?: string; ip?: string; reason: string }) => Promise<void>;
+};
+
 export type GeminiCaller = (input: {
   systemInstruction: string;
   contents: Array<{ role: 'user'; parts: Array<{ text: string }> }>;
@@ -56,7 +69,7 @@ export type GeminiCaller = (input: {
 export const ORCHESTRATOR_SYSTEM_PROMPT = `You are the JoraFlow Orchestrator. Your job is to select the most relevant skill(s) for each request and route the task accordingly.
 
 Rules of Engagement:
-1. Determine the user’s intent and which application area it affects.
+1. Determine the user's intent and which application area it affects.
 2. If a request maps to a specific skill, use that skill first.
 3. If multiple skills apply, pick the primary skill, then optionally consult secondary skills.
 4. If no skill fits, answer normally without invoking a skill.
@@ -185,7 +198,6 @@ export class SkillManager {
       rationale = `Selected ${primary.name} based on keyword overlap and skill description match.`;
     }
 
-    // Always include security-guardrail as secondary if request mentions data, auth, or privacy.
     if (primary && primary.name !== 'security-guardrail') {
       if (/(auth|security|privacy|token|email|storage|database|rls|oauth)/i.test(userInput)) {
         const sec = this.skills.find(s => s.name === 'security-guardrail');
@@ -194,6 +206,22 @@ export class SkillManager {
     }
 
     return { primary, secondary, rationale };
+  }
+
+  loadRequiredReferences(skill: SkillDefinition): string {
+    const required = extractRequiredReferences(skill.instructions);
+    if (!required.length) return '';
+
+    const baseDir = path.dirname(skill.sourcePath);
+    const loaded: string[] = [];
+    for (const rel of required) {
+      const full = path.join(baseDir, rel);
+      if (fs.existsSync(full)) {
+        loaded.push(`\n\n[REFERENCE: ${rel}]\n${fs.readFileSync(full, 'utf8')}`);
+      }
+    }
+
+    return loaded.join('');
   }
 
   buildSystemPrompt(selection: OrchestratorSelection): string {
@@ -205,18 +233,20 @@ export class SkillManager {
           .join('\n')}`
       : '';
 
-    return `${ORCHESTRATOR_SYSTEM_PROMPT}
+    const refs = this.loadRequiredReferences(selection.primary);
 
-CURRENTLY ACTIVE SKILL: ${selection.primary.name}
-SKILL INSTRUCTIONS:\n`;
+    return `${ORCHESTRATOR_SYSTEM_PROMPT}\n\nCURRENTLY ACTIVE SKILL: ${selection.primary.name}\nSKILL INSTRUCTIONS:\n${selection.primary.instructions}${secondaryBlock}${refs}`;
   }
 
   async runAgenticWorkflow(
     userInput: string,
     llmCall: LlmCaller,
-    rawEmailData?: string
+    rawEmailData?: string,
+    security?: SecurityContext
   ): Promise<unknown> {
     if (!this.skills.length) this.loadSkills();
+
+    await enforceSecurity(userInput, security);
 
     const selection = this.findBestSkillFor(userInput);
     const systemPrompt = this.buildSystemPrompt(selection);
@@ -228,9 +258,12 @@ SKILL INSTRUCTIONS:\n`;
   async runWithGemini(
     userInput: string,
     geminiGenerate: GeminiCaller,
-    rawEmailData?: string
+    rawEmailData?: string,
+    security?: SecurityContext
   ): Promise<unknown> {
     if (!this.skills.length) this.loadSkills();
+
+    await enforceSecurity(userInput, security);
 
     const selection = this.findBestSkillFor(userInput);
     const systemPrompt = this.buildSystemPrompt(selection);
@@ -243,8 +276,6 @@ SKILL INSTRUCTIONS:\n`;
   }
 }
 
-// Minimal frontmatter parser that handles simple YAML key: value pairs.
-// If you need full YAML support (arrays, nested objects), consider adding js-yaml.
 function parseFrontmatter(content: string): { meta: Record<string, string>; body: string } | null {
   const trimmed = content.trimStart();
   if (!trimmed.startsWith('---')) return null;
@@ -269,6 +300,22 @@ function parseFrontmatter(content: string): { meta: Record<string, string>; body
   return { meta, body };
 }
 
+function extractRequiredReferences(instructions: string): string[] {
+  const lines = instructions.split(/\r?\n/);
+  const reqIndex = lines.findIndex(l => l.trim().toLowerCase() === '## required references');
+  if (reqIndex === -1) return [];
+
+  const refs: string[] = [];
+  for (let i = reqIndex + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('-')) break;
+    const match = line.match(/`([^`]+)`/);
+    if (match) refs.push(match[1]);
+  }
+
+  return refs;
+}
+
 function extractKeywords(text: string): string[] {
   const words = text
     .replace(/[^a-z0-9\s]/g, ' ')
@@ -288,18 +335,71 @@ function extractKeywords(text: string): string[] {
 
   return Array.from(uniq).slice(0, 50);
 }
-function extractRequiredReferences(instructions: string): string[] {
-  const lines = instructions.split(/\r?\n/);
-  const reqIndex = lines.findIndex(l => l.trim().toLowerCase() === '## required references');
-  if (reqIndex === -1) return [];
 
-  const refs: string[] = [];
-  for (let i = reqIndex + 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line.startsWith('-')) break;
-    const match = line.match(/([^]+)/);
-    if (match) refs.push(match[1]);
+async function enforceSecurity(userInput: string, security?: SecurityContext): Promise<void> {
+  if (!security) return;
+
+  if (security.headers) {
+    const waf = verifyWafHeaders(security.headers);
+    if (!waf.ok || (security.requireWafHeaders && waf.warnings.length > 0)) {
+      throw new SecurityError('waf_blocked', 403);
+    }
   }
 
-  return refs;
+  const reason = detectPromptInjection(userInput);
+  if (reason) {
+    if (security.onPromptInjection) {
+      await security.onPromptInjection({ userId: security.userId, ip: security.ip, reason });
+    }
+    throw new SecurityError('prompt_injection_detected', 401);
+  }
+
+  if (security.rateLimiter && security.userId) {
+    const result = await security.rateLimiter.allow(security.userId);
+    if (!result.allowed) {
+      throw new SecurityError('rate_limited', 429, result.retryAfterSeconds);
+    }
+  }
+}
+
+export function verifyWafHeaders(headers: Record<string, string | undefined>): { ok: boolean; warnings: string[] } {
+  const warnings: string[] = [];
+  const threatScore = headers['x-waf-threat-score'];
+  const geoIp = headers['x-waf-geo-ip'];
+  const reqId = headers['x-waf-request-id'];
+
+  if (!threatScore) warnings.push('missing_threat_score');
+  if (!geoIp) warnings.push('missing_geo_ip');
+  if (!reqId) warnings.push('missing_request_id');
+
+  if (threatScore && Number(threatScore) >= 80) {
+    return { ok: false, warnings: ['high_threat_score'] };
+  }
+
+  return { ok: warnings.length === 0, warnings };
+}
+
+export function detectPromptInjection(input: string): string | null {
+  const patterns = [
+    /ignore (all|previous|system) instructions/i,
+    /reveal (system|developer) prompt/i,
+    /exfiltrate|leak|dump (keys|secrets|tokens)/i,
+    /bypass security|disable guardrails/i,
+  ];
+
+  for (const p of patterns) {
+    if (p.test(input)) return `matched:${p.source}`;
+  }
+  return null;
+}
+
+export class SecurityError extends Error {
+  readonly statusCode: number;
+  readonly retryAfterSeconds?: number;
+
+  constructor(message: string, statusCode: number, retryAfterSeconds?: number) {
+    super(message);
+    this.statusCode = statusCode;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
 }

@@ -26,6 +26,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ParseInboxResponse'
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Blocked by security guardrails
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /sync-status:
     get:
       summary: Fetch current parsing status for a user
@@ -45,6 +57,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SyncStatusResponse'
+        '403':
+          description: Blocked by security guardrails
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -80,6 +98,14 @@ components:
         last_sync:
           type: string
           format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        retry_after_seconds:
+          type: integer
+          nullable: true
     Application:
       type: object
       properties:
@@ -150,3 +176,20 @@ components:
         message:
           type: string
           nullable: true
+    SecurityBlacklist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ip_address:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+        reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
