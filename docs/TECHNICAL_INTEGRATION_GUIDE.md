@@ -228,3 +228,4 @@ Front-end should render these states based on API responses:
 
 ## 22. Knowledge Plan Reload
 If docs/KNOWLEDGE_PLAN.md changes at runtime, call SkillManager.refreshKnowledgePlan() to reload the cached content without restarting the service.
+\n## 23. Lovable Design System\nSee docs/DESIGN_SYSTEM_LOVABLE.md for UI patterns, Evidence Window, and interactive states.\n
