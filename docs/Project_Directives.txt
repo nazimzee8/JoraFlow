@@ -1,0 +1,59 @@
+To ensure Lovable (Frontend) and Codex (Backend) work in perfect harmony, here is the official JoraFlow 4-Day Execution Pipeline.
+
+This document uses a "Bridge-First" strategy, where the data contract is established on Day 1 so both agents can build toward a single goal.
+
+JoraFlow: 4-Day Rapid Development Pipeline
+Day 1: The Blueprint & Foundation
+Primary Tool: Codex (Backend)
+
+Objective: Define the "Source of Truth".
+
+Tasks:
+
+SQL Schema: Execute the migration to create applications, status_history, and sync_logs in Supabase.
+
+The Bridge: Generate the OpenAPI Spec (openapi.yaml) that defines the inputs and outputs for the AI agents.
+
+Auth Setup: Configure Google/Microsoft OAuth scopes in the Supabase Dashboard.
+
+Day 2: The Face (UI/UX Implementation)
+Primary Tool: Lovable (Frontend)
+
+Objective: Build the interactive analytics engine.
+
+Tasks:
+
+Component Build: Create the Dashboard, Ghosting Radar, and the Sankey Diagram.
+
+Data Mocking: Feed Lovable the openapi.yaml and the "100-line sample dataset" to populate the UI before the real backend is live.
+
+Realtime Listeners: Implement Supabase Realtime subscriptions to listen for status_history changes.
+
+Day 3: The Brain (Agentic Backend)
+Primary Tool: Codex (Backend)
+
+Objective: Deploy the specialized skills and parsing logic.
+
+Tasks:
+
+Edge Functions: Deploy the AgentOrchestrator to Supabase Edge Functions (Deno).
+
+Parsing Agent: Implement the Gemini 3 Pro logic to extract status from raw email/metadata.
+
+Security Guardrail: Integrate DNS validation and PII scrubbing within the ingestion pipeline.
+
+Day 4: Integration & "The Wow Factor"
+Primary Tools: Both Lovable & Codex
+
+Objective: Final wiring and demo preparation.
+
+Tasks:
+
+The Swap: Replace the mock API calls in Lovable with the live supabase.functions.invoke() calls.
+
+Polishing: Add Framer Motion animations for the recruitment funnel and "Confetti" triggers for Job Offers.
+
+Final Demo Audit: Run a full sync of 100 varied emails to verify classification accuracy and performance.
+
+Key Directive for Both Agents
+"Do not deviate from the OpenAPI Spec or the SQL schema established on Day 1. All frontend components must be responsive and all backend functions must prioritize Zero-Trust security protocols."

@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: JoraFlow Edge API
+  version: 0.1.0
+  description: |
+    OpenAPI contract for Lovable (frontend) and Codex (backend) integration.
+    This spec is the source of truth for request/response shapes.
+servers:
+  - url: https://<your-project>.supabase.co/functions/v1
+paths:
+  /parse-inbox:
+    post:
+      summary: Trigger inbox parsing and job status extraction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParseInboxRequest'
+      responses:
+        '200':
+          description: Parsing request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParseInboxResponse'
+  /sync-status:
+    get:
+      summary: Fetch current parsing status for a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current sync status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatusResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ParseInboxRequest:
+      type: object
+      required: [user_id, days]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          example: 90
+    ParseInboxResponse:
+      type: object
+      properties:
+        queued:
+          type: boolean
+        job_count_estimate:
+          type: integer
+    SyncStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [idle, parsing, done, error]
+        last_sync:
+          type: string
+          format: date-time
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        company:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+          enum: [APPLIED, SCREENING, INTERVIEW, OFFER, REJECTED, UNKNOWN]
+        confidence_score:
+          type: number
+          format: float
+        last_sync:
+          type: string
+          format: date-time
+        source_provider:
+          type: string
+        source_email_id:
+          type: string
+          nullable: true
+    StatusHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        application_id:
+          type: string
+          format: uuid
+        from_status:
+          type: string
+          enum: [APPLIED, SCREENING, INTERVIEW, OFFER, REJECTED, UNKNOWN]
+        to_status:
+          type: string
+          enum: [APPLIED, SCREENING, INTERVIEW, OFFER, REJECTED, UNKNOWN]
+        changed_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum: [email, manual, import]
+    SyncLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [idle, parsing, done, error]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        last_sync:
+          type: string
+          format: date-time
+        message:
+          type: string
+          nullable: true
