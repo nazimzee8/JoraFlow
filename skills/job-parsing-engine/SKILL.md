@@ -76,3 +76,4 @@ If confidence < 0.5, set status to UNKNOWN.
 - `references/job-parsing-examples.md`: Provider-specific examples and phrasing patterns. Load this when you need concrete examples.
 - `references/test-corpus-template.md`: Template for building a labeled test corpus. Load this when creating tests or evaluation sets.
 - `references/validation-checklist.md`: Edge-case checklist for QA. Load this during validation or debugging.
+\n## Required References\n- eferences/ files listed below must be loaded when executing this skill.\n- eferences/job-parsing-examples.md\n- eferences/test-corpus-template.md (when building tests)\n- eferences/validation-checklist.md (when validating)\n

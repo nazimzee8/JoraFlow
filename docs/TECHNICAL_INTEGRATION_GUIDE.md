@@ -175,3 +175,4 @@ Day 4 (Integration)
 - Backend responses must match the OpenAPI response schemas exactly.
 - If a field is added/renamed, update both TypeScript types and DB schema.
 - Do not ship changes that break the contract without updating this guide.
+\n## 12. Skill References Loading\nAll skills must declare a 'Required References' section in SKILL.md. The orchestrator auto-loads those reference files and appends them to the system prompt. If you add a new reference file, add it to that section.\n

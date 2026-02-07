@@ -33,3 +33,4 @@ Sankey diagram:
 - `references/component-guidelines.md`: Component styling and usage. Load when creating or reviewing components.
 - `references/layout-recipes.md`: Concrete layout recipes for desktop and mobile. Load when implementing responsive layouts.
 - `references/motion-spec.md`: Motion timing and easing guidance. Load when implementing animations.
+\n## Required References\n- eferences/ files listed below must be loaded when executing this skill.\n- eferences/component-guidelines.md\n- eferences/layout-recipes.md\n- eferences/motion-spec.md\n

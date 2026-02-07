@@ -208,8 +208,7 @@ export class SkillManager {
     return `${ORCHESTRATOR_SYSTEM_PROMPT}
 
 CURRENTLY ACTIVE SKILL: ${selection.primary.name}
-SKILL INSTRUCTIONS:
-${selection.primary.instructions}${secondaryBlock}`;
+SKILL INSTRUCTIONS:\n`;
   }
 
   async runAgenticWorkflow(
@@ -288,4 +287,19 @@ function extractKeywords(text: string): string[] {
   }
 
   return Array.from(uniq).slice(0, 50);
+}
+function extractRequiredReferences(instructions: string): string[] {
+  const lines = instructions.split(/\r?\n/);
+  const reqIndex = lines.findIndex(l => l.trim().toLowerCase() === '## required references');
+  if (reqIndex === -1) return [];
+
+  const refs: string[] = [];
+  for (let i = reqIndex + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('-')) break;
+    const match = line.match(/([^]+)/);
+    if (match) refs.push(match[1]);
+  }
+
+  return refs;
 }

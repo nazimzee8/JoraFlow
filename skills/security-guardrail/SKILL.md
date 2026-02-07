@@ -2,8 +2,7 @@
 name: security-guardrail
 description: Security and privacy protocols for JoraFlow; use when handling email ingestion, data storage, authentication, or API validation.
 ---
-# Security Guardrail
-
+# Security Guardrail\r?\n\r?\n## Hardened Security Addendum\r?\nThis skill enforces Zero-Trust ingestion, defense-in-depth controls, secure communications, and strict least-privilege access for Gmail/Outlook processing.\r?\n
 ## Overview
 Apply these security and privacy rules whenever designing or implementing ingestion, storage, API validation, or authentication for JoraFlow.
 
@@ -29,3 +28,6 @@ Apply these security and privacy rules whenever designing or implementing ingest
 
 
 
+
+\n## Regex & DNS Logic\nUse the regex and DNS rules defined in eferences/regex-dns-logic.md when validating sender domains and email metadata. Load that reference before implementing validation logic.\n
+\n## Required References\n- eferences/ files listed below must be loaded when executing this skill.\n- eferences/storage-policy.md\n- eferences/validation-checklist.md\n- eferences/auth-rls.md\n- eferences/infra-security.md\n- eferences/dns-risk-logic.md\n- eferences/attachment-stripping.md\n- eferences/regex-dns-logic.md\n- eferences/dpia-template.md\n- eferences/security-test-checklist.md\n- eferences/incident-response.md\n
