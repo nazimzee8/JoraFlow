@@ -34,3 +34,13 @@ Sankey diagram:
 - `references/layout-recipes.md`: Concrete layout recipes for desktop and mobile. Load when implementing responsive layouts.
 - `references/motion-spec.md`: Motion timing and easing guidance. Load when implementing animations.
 \n## Required References\n- eferences/ files listed below must be loaded when executing this skill.\n- eferences/component-guidelines.md\n- eferences/layout-recipes.md\n- eferences/motion-spec.md\n
+
+## Source-Grounding (Evidence Window)
+- Provide a UI component that shows the exact email snippet used for classification.
+- When a Sankey node is selected, display the supporting text and metadata (source provider, date).
+## Empty-State & Zero-State
+- Define a "Scanning Inbox" skeleton screen for first-time users.
+- Use subtle Framer Motion fade-in-up on placeholders.
+## Accessibility Standards
+- Apply ARIA labels to all SVG paths in the Sankey diagram.
+- Provide a high-contrast mode for funnel stages and status colors.

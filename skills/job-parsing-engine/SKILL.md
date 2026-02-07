@@ -77,3 +77,34 @@ If confidence < 0.5, set status to UNKNOWN.
 - `references/test-corpus-template.md`: Template for building a labeled test corpus. Load this when creating tests or evaluation sets.
 - `references/validation-checklist.md`: Edge-case checklist for QA. Load this during validation or debugging.
 \n## Required References\n- eferences/ files listed below must be loaded when executing this skill.\n- eferences/job-parsing-examples.md\n- eferences/test-corpus-template.md (when building tests)\n- eferences/validation-checklist.md (when validating)\n
+
+## Thread-Awareness
+- Use `In-Reply-To` and `References` headers to detect ongoing threads.
+- If a message is a reminder or scheduling follow-up for an already-known interview, do not create a new status entry.
+- Prefer updating `status_history` only when the status meaningfully changes.
+## Soft-Rejection Logic
+- Phrases like "we have moved forward with other candidates" or "we will keep your resume on file" must be classified as REJECTED.
+- Do not leave these as UNKNOWN or APPLIED.
+## Date Normalization
+- Normalize all extracted dates/times to ISO 8601 UTC.
+- Use the email `Date` header as the timezone context when the email body is ambiguous (e.g., "Tuesday at 2 PM").
+- Store the normalized timestamp in `event_date` and preserve original local time if needed.
+
+## Cross-Platform Reconciliation
+- Merge email-derived and job-board metadata into a single application entity.
+- Use fuzzy matching on Company + Job Title (>= 85% similarity) to link records.
+- Source priority when timestamps are within 5 minutes:
+  - Manual Entry > Job Board Metadata > AI Email Parsing.
+- If data conflicts, keep the higher-priority source and store the other as evidence.
+## Job Board Metadata Parsing
+- Detect confirmation pages from LinkedIn, Indeed, Greenhouse by URL patterns and headers.
+- LinkedIn: look for "Application sent" or "Applied on".
+- Indeed: look for "Application submitted" or "Your application has been sent".
+- Greenhouse: confirmation pages with application received text.
+- Extract Source Channel (e.g., "LinkedIn Easy Apply", "Direct Career Site").
+- Detect referral tags in metadata and set `referral = true` when present.
+## Evidence Linking
+- Attach source provider to evidence snippets (e.g., "Extracted from Greenhouse confirmation page").
+- Preserve provider + timestamp to show in the Evidence Window.
+- eferences/job-board-patterns.md\n- eferences/reconciliation.md\n
+

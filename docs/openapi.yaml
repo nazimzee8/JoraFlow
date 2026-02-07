@@ -130,6 +130,12 @@ components:
           format: date-time
         source_provider:
           type: string
+        source_channel:
+          type: string
+          nullable: true
+        referral:
+          type: boolean
+          nullable: true
         source_email_id:
           type: string
           nullable: true
@@ -153,7 +159,7 @@ components:
           format: date-time
         source:
           type: string
-          enum: [email, manual, import]
+          enum: [email, manual, import, job_board]
     SyncLog:
       type: object
       properties:

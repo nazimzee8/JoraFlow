@@ -9,3 +9,6 @@
 - Single column, stacked sections
 - Bottom nav with 3 items: Home, Funnel, Settings
 - Sankey container: horizontal scroll with snap optional
+
+## Empty State
+- Scanning Inbox skeleton state before first sync completes.

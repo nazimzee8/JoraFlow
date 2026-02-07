@@ -69,3 +69,7 @@ Use the regex and DNS rules defined in `references/regex-dns-logic.md` when vali
 - `references/dpia-template.md`
 - `references/security-test-checklist.md`
 - `references/incident-response.md`
+
+## PII Masking
+- Mask non-essential PII (home address, phone number) before rendering snippets in the UI.
+- Store only masked snippets in the database if needed for audit or evidence windows.

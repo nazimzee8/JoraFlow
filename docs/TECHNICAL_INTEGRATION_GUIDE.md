@@ -207,3 +207,20 @@ Front-end should render these states based on API responses:
 - waf_blocked: show security warning + support link
 - high_risk_sender: tag sender as High Risk in UI
 - prompt_injection_detected: force logout + show generic security error
+
+## 17. Evidence Window + A11y Requirements (Lovable)
+- The Sankey node detail view must show a "Source Snippet" (Evidence Window) from the email that triggered the status.
+- Masked PII only; never display raw phone or address text.
+- Add ARIA labels to all Sankey SVG paths and enable high-contrast mode for funnel stages.
+- Provide a "Scanning Inbox" skeleton state before first sync completes.
+
+## 18. Cross-Platform Reconciliation
+- Merge email-derived and job-board metadata into one application record.
+- Fuzzy match Company + Role at >= 85% similarity.
+- Source priority within 5 minutes: Manual > Job Board > Email parsing.
+- Store lower-priority source as evidence for the Evidence Window.
+
+## 19. Job Board Metadata Requirements
+- Parse LinkedIn/Indeed/Greenhouse confirmation pages.
+- Extract source_channel (e.g., LinkedIn Easy Apply vs Direct Career Site).
+- Detect referral tags and store eferral = true for badge display.

@@ -23,3 +23,9 @@ Use these rules when designing or reviewing components.
 - Interview: primary (indigo)
 - Offer: success (emerald)
 - Rejected: muted slate or desaturated red
+
+## Evidence Window
+- Component shows source snippet + provider + date.
+- Use monospace style for snippet and a subtle border.
+## High Contrast Mode
+- Provide alternative color tokens for funnel stages with WCAG AA contrast.

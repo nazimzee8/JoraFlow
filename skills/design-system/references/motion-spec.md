@@ -11,3 +11,6 @@ Use Framer Motion for transitions and entry animations.
 
 ## Easing
 - Prefer easeOut for exits, easeInOut for transitions
+
+## Skeleton Motion
+- Use low-amplitude shimmer or fade-in-up for placeholders.
